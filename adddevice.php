@@ -2,18 +2,15 @@
 
 include('config.php');
 
-$ip_address = $_GET['ipaddress'];
-$port_number = $_GET['portnumber'];
-$community = $_GET['community'];
-$version = $_GET['version'];
 
-if(empty($ip_address) || empty($port_number) || empty($community) || empty($version)) {
-    echo "please provide proper input" ;   
+
+if(empty($_GET['ipaddress']) || empty($_GET['portnumber']) || empty($_GET['community']) || empty($_GET['version'])) {
+    echo "Give an valid input of ipaddress, portnumber, community and the version " ;   
 }
 
 else {
 
-    $db->exec("INSERT INTO info (IP,PORT,COMMUNITY,VERSION) VALUES ('$ip_address','$port_number','$community','$version')");
+    $db->exec("INSERT INTO manager (IP,PORT,COMMUNITY,VERSION) VALUES ('$_GET['ipaddress']','$_GET['portnumber']','$_GET['community']','$_GET['version']')");
         echo "\n";
         echo "OK";
     
