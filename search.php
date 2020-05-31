@@ -7,7 +7,7 @@ EOF;
 
 	$final = $db->query($sql);
 	while($row = $final->fetchArray(SQLITE3_ASSOC) ) {
-      echo   $row['IPADDRESS']." | ".$row['VLAN']." | ".$row['PORT']." | "."$searchstr"."\n";
+      echo   $row['IPADDRESS']." | ".$row['VLAN']." | ".$row['PORTNUMBER']." | "."$searchstr"."\n";
    }
 
    $db->close();
