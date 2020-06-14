@@ -96,8 +96,8 @@ def probe_device(ip, port, community, version, connections):
             c.commit()
     except Exception as e:
         print(str(e)+' '+str(ip)+":"+str(port))
-    finish = str(datetime.fromtimestamp(int(time.time())))
-    c.execute("update manager set firstprob=?, lastprob=? where (ip=? and port=?)",(start, finish, ip, port))
+    finished = str(datetime.fromtimestamp(int(time.time())))
+    c.execute("update manager set firstprob=?, lastprob=? where (ip=? and port=?)",(start, finished, ip, port))
     c.commit()
 if  __name__=='__main__':
     while True:
