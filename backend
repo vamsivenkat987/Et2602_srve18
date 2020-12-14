@@ -5,7 +5,7 @@ import sqlite3
 from easysnmp import Session
 from sqlite3 import Error
 
-VraLan = 'DEFAULT_VLAN(1)'
+VL = 'DEFAULT_VLAN()'
 def  create_connection(db_file):
     connection = None
     try:
@@ -14,8 +14,8 @@ def  create_connection(db_file):
         print(e)
     finally:
         if connection:
-            r_se = connection.execute('Select * from switches')
-            for items in r_se:
+            response = connection.execute('Select * from switches')
+            for items in response:
                 ip = items[0]; port=int(items[1]); community=items[2]; version=int(items[3])
                 probing_with_oids(ip, port, community,version, connection)
 
@@ -35,9 +35,9 @@ def probing_with_oids(ip, port, community, version, connection):
         session = Session(hostname=ip, remote_port=port, version=version, community=community)
     except Exception as e:
         print(e)
-        f_atts = connection.execute("select f_atts from switches where ip=?, port=?",(ip,port))
-        f_atts += 1
-        connection.execute("update switches set f_atts=? where (ip=? and port=?)",(f_atts,ip,port))
+        failed_attempts = connection.execute("select failed_attempts from switches where ip=?, port=?",(ip,port))
+        failed_attempts += 1
+        connection.execute("update switches set failed_attempts=? where (ip=? and port=?)",(failed_attempts,ip,port))
         connection.commit()
     start = str(datetime.fromtimestamp(int(time.time())))
     print(start)
@@ -49,13 +49,13 @@ def probing_with_oids(ip, port, community, version, connection):
             mac = ':'.join('{:02x}'.format(ord(a)) for a in m.value)
             portval = p.value
             print(ip,mac,portval)
-            r_se = connection.execute("SELECT * from List where (port=? and Device=?)",(portval,ip))
-            fetch_data = r_se.fetchall()
+            response = connection.execute("SELECT * from List where (port=? and Device=?)",(portval,ip))
+            fetch_data = response.fetchall()
             for connected_macs in fetch_data:
                 m = connected_macs[3]
             if len(fetch_data)==0:
                 print(ip,mac,portval)
-                connection.execute('''INSERT INTO List(Device, VLANS, port, MACS) values (?,?,?,?)''',(ip,VraLan,portval,mac))
+                connection.execute('''INSERT INTO List(Device, VLANS, port, MACS) values (?,?,?,?)''',(ip,VL,portval,mac))
                 connection.commit()
             elif len(fetch_data)==1 and m.find(mac)==-1:
                 finalmac = m+","+mac
@@ -76,7 +76,7 @@ def probing_with_oids(ip, port, community, version, connection):
             vnums = oid.split('.')
             vnum = str(vnums[-1])
             combine = ''
-            if vname != VraLan:
+            if vname != VL:
                 for i in range(len(values)):
                     hexlist = values
                     mac_hex = hexlist[i]
@@ -93,18 +93,17 @@ def probing_with_oids(ip, port, community, version, connection):
         for i in range(len(vlansnum)):
             portlan = '1'
             connection.execute("update List set VLANS = ? where port=?", (vlanname[i],vlansnum[i]))
-            time.sleep(0.007)
-        connection.commit()
+            time.sleep(0.005)
+	    connection.commit()
     except Exception as e:
         print(str(e)+' '+str(ip)+":"+str(port))
     finish = str(datetime.fromtimestamp(int(time.time())))
     print(finish)
-    print('okay')
+    print('ok!')
     connection.execute("update switches set first_probetime=?, latest_probetime=? where (ip=? and port=?)",(start, finish, ip, port))
     connection.commit()
-    print("Data base has been updated")
+    print("Db updated!")
 if  __name__=='__main__':
     while True:
         create_connection('vamsi.db')
         time.sleep(60)
-
