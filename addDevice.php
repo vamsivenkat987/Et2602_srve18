@@ -1,6 +1,6 @@
 <?php
 
-include_once('vamsi.php');
+include_once('config.php');
 
 $ip = $_GET['ip'];
 $port = $_GET['port'];
